@@ -1,48 +1,72 @@
 package com.thrillpool.navigation
 
-import com.thrillpool.Rover
-import com.thrillpool.navigation.AutoPilot.{Path, PathTaken}
+import com.thrillpool.MarsRover
+import com.thrillpool.navigation.AutoPilot.NoRoutesToDestination
 import com.thrillpool.navigation.representation.North
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import com.thrillpool.navigation.representation.Grid
-import com.thrillpool.navigation.representation.CoordinatesSystem.{Xaxis, Yaxis}
+import com.thrillpool.navigation.representation.GridCoordinate
+import com.thrillpool.navigation.representation.CoordinatesSystem.{
+  OutOfBoundsError,
+  Xaxis,
+  Yaxis
+}
 
 class AutoPilotSpec extends AnyFlatSpec with Matchers {
 
   "AutoPilot" should "navigate between start and end grid point,  while avoiding forbidden points" in {
-    val start = Rover(2, 5, North)
-    val end = Rover(4, 3, North)
+    val start = MarsRover(2, 5, North)
+    val end = MarsRover(4, 3, North)
 
     val forbidden = List(
-      Grid(Xaxis(3), Yaxis(2)),
-      Grid(Xaxis(3), Yaxis(3)),
-      Grid(Xaxis(3), Yaxis(4)),
-      Grid(Xaxis(3), Yaxis(5)),
-      Grid(Xaxis(3), Yaxis(6))
+      GridCoordinate(Xaxis(3), Yaxis(2)),
+      GridCoordinate(Xaxis(3), Yaxis(3)),
+      GridCoordinate(Xaxis(3), Yaxis(4)),
+      GridCoordinate(Xaxis(3), Yaxis(5)),
+      GridCoordinate(Xaxis(3), Yaxis(6))
     )
 
     val Right(pathTaken) = AutoPilot
-      .routeBetweenGridPoints(start, end.grid, forbidden)
+      .routeBetweenGridPoints(start, end.gridPosition, forbidden)
 
     forbidden.foreach(forbiddenPoint =>
-      pathTaken.path.route shouldNot contain(forbiddenPoint)
+      pathTaken.path.value shouldNot contain(forbiddenPoint)
     )
 
-//    pathTaken shouldBe PathTaken(
-//      end.grid,
-//      Path(
-//        List(
-//          Grid(Xaxis(4), Yaxis(3)),
-//          Grid(Xaxis(4), Yaxis(2)),
-//          Grid(Xaxis(4), Yaxis(1)),
-//          Grid(Xaxis(3), Yaxis(1)),
-//          Grid(Xaxis(2), Yaxis(1)),
-//          Grid(Xaxis(2), Yaxis(6)),
-//          Grid(Xaxis(2), Yaxis(5))
-//        )
-//      )
-//    )
+    pathTaken.lastGrid.gridPosition shouldBe end.gridPosition
+
+  }
+
+  it should "fail to process an out of bounds input" in {
+    val start = MarsRover(200, 1, North)
+    val end = MarsRover(1, 1, North)
+
+    val Left(error) = AutoPilot
+      .routeBetweenGridPoints(start, end.gridPosition, Nil)
+
+    error shouldBe OutOfBoundsError(200, 6, 1)
+
+  }
+
+  it should "fail to find a suitable route" in {
+    val start = MarsRover(4, 4, North)
+    val end = MarsRover(1, 1, North)
+
+    val forbidden = List(
+      GridCoordinate(Xaxis(3), Yaxis(3)),
+      GridCoordinate(Xaxis(3), Yaxis(4)),
+      GridCoordinate(Xaxis(3), Yaxis(5)),
+      GridCoordinate(Xaxis(4), Yaxis(3)),
+      GridCoordinate(Xaxis(4), Yaxis(5)),
+      GridCoordinate(Xaxis(5), Yaxis(3)),
+      GridCoordinate(Xaxis(5), Yaxis(4)),
+      GridCoordinate(Xaxis(5), Yaxis(5))
+    )
+
+    val Left(error) = AutoPilot
+      .routeBetweenGridPoints(start, end.gridPosition, forbidden)
+
+    error shouldBe NoRoutesToDestination(start.gridPosition, end.gridPosition)
 
   }
 

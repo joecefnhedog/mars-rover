@@ -1,57 +1,113 @@
 package com.thrillpool
 
+import com.thrillpool.navigation.{
+  AntiClockwise,
+  AutoPilot,
+  Clockwise,
+  Forward,
+  Operation
+}
+import com.thrillpool.navigation.representation.CoordinatesSystem.{
+  Bounds,
+  OutOfBoundsError,
+  Xaxis,
+  Yaxis
+}
+import com.thrillpool.navigation.representation.{
+  BorderMovement,
+  East,
+  GridCoordinate,
+  North,
+  Orientation,
+  South,
+  West
+}
 
-import com.thrillpool.navigation.{AntiClockwise, Clockwise, Forward, Operation}
-import com.thrillpool.navigation.representation.CoordinatesSystem.{Bounds, OutOfBoundsError, Xaxis, Yaxis}
-import com.thrillpool.navigation.representation.{East, Grid, North, Orientation, South, West}
+case class MarsRover(gridPosition: GridCoordinate, orientation: Orientation) {
 
-case class Rover(grid: Grid, orientation: Orientation) {
-
-  def moveForward: Rover = {
+  def moveForward: MarsRover = {
     orientation match {
-      case North => this.copy(grid = grid.copy(y = grid.y.increment))
-      case East  => this.copy(grid = grid.copy(x = grid.x.increment))
-      case South => this.copy(grid = grid.copy(y = grid.y.decrement))
-      case West  => this.copy(grid = grid.copy(x = grid.x.decrement))
+      case North =>
+        this.copy(gridPosition =
+          gridPosition.copy(y = gridPosition.y.increment)
+        )
+      case East =>
+        this.copy(gridPosition =
+          gridPosition.copy(x = gridPosition.x.increment)
+        )
+      case South =>
+        this.copy(gridPosition =
+          gridPosition.copy(y = gridPosition.y.decrement)
+        )
+      case West =>
+        this.copy(gridPosition =
+          gridPosition.copy(x = gridPosition.x.decrement)
+        )
     }
 
   }
 
-  def rotateClockwise: Rover = this.copy(orientation = orientation.clockwise)
+  def rotateClockwise: MarsRover =
+    this.copy(orientation = orientation.clockwise)
 
-  def rotateAnticlockwise: Rover =
+  def rotateAnticlockwise: MarsRover =
     this.copy(orientation = orientation.antiClockwise)
 
-  def validateGrid: Either[OutOfBoundsError, Rover] = for {
-    xaxis <- grid.x.validate
-    yaxis <- grid.y.validate
-  } yield Rover(Grid(xaxis, yaxis), orientation)
+  private[thrillpool] def validate: Either[OutOfBoundsError, MarsRover] = for {
+    xaxis <- gridPosition.x.validate
+    yaxis <- gridPosition.y.validate
+  } yield MarsRover(GridCoordinate(xaxis, yaxis), orientation)
 
-  case class NeighbourOperation(operation: List[Operation], newGrid: Rover)
-
-  private[thrillpool] def neighbourWithMove: List[NeighbourOperation] =
+  private[thrillpool] def border: List[BorderMovement] =
     List(
-      NeighbourOperation(List(Forward), this.moveForward),
-      NeighbourOperation(
-        List(Clockwise, Forward),
-        this.moveForward.rotateClockwise
+      BorderMovement(List(Forward), this.moveForward),
+      BorderMovement(
+        List(Forward, Clockwise),
+        this.rotateClockwise.moveForward
       ),
-      NeighbourOperation(
-        List(Clockwise, Clockwise, Forward),
+      BorderMovement(
+        List(Forward, Clockwise, Clockwise),
         this.rotateClockwise.rotateClockwise.moveForward
       ),
-      NeighbourOperation(
-        List(AntiClockwise, Forward),
+      BorderMovement(
+        List(Forward, AntiClockwise),
         this.rotateAnticlockwise.moveForward
       )
     )
 
 }
 
-object Rover extends Bounds {
+object MarsRover extends Bounds with App {
 
-  def apply(x: Int, y: Int, orientation: Orientation): Rover =
-    Rover(Grid(Xaxis(x), Yaxis(y)), orientation)
+  def apply(x: Int, y: Int, orientation: Orientation): MarsRover =
+    MarsRover(GridCoordinate(Xaxis(x), Yaxis(y)), orientation)
 
+  val start = MarsRover(2, 5, North)
+  val end = MarsRover(4, 3, North)
+
+  val forbidden = List(
+    GridCoordinate(Xaxis(3), Yaxis(2)),
+    GridCoordinate(Xaxis(3), Yaxis(3)),
+    GridCoordinate(Xaxis(3), Yaxis(4)),
+    GridCoordinate(Xaxis(3), Yaxis(5)),
+    GridCoordinate(Xaxis(3), Yaxis(6))
+  )
+
+  val Right(pathTaken) = AutoPilot
+    .routeBetweenGridPoints(start, end.gridPosition, forbidden)
+
+  val squaresVisited = pathTaken.path.value.map(_.rover.gridPosition)
+
+  pathTaken.path.value.reverse.foreach { (roverWithOperations) =>
+    val operations = roverWithOperations.operations
+
+    val movement =
+      if (operations.isEmpty) s"Starting at:"
+      else
+        s"Performed the following operations: (${operations.mkString(",")}) to get to:"
+
+    println(s"${movement}  $roverWithOperations.rover")
+
+  }
 
 }
