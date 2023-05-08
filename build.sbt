@@ -6,3 +6,11 @@ lazy val root = (project in file("."))
   .settings(
     name := "mars-rover"
   )
+
+libraryDependencies += "org.typelevel" %% "cats-core" % "2.9.0"
+libraryDependencies += "org.scalactic" %% "scalactic" % "3.2.15"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.15" % "test"
+libraryDependencies ++= Seq(
+  "org.slf4j" % "slf4j-api" % "1.7.5",
+  "org.slf4j" % "slf4j-simple" % "1.7.5"
+)
