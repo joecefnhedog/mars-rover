@@ -14,7 +14,7 @@ It will return the route and detail the operations needed by the rover.
 Errors will be returned if the route cannot be completed or the input grid coordinates are out of bounds.
 
 ## Getting Started
-The `MarsRover` object extends App to "pretty print" one of the shortest routes between grid points, while avoiding a series of forbidden routes. 
+The `MarsRover` object extends App to "pretty print" one of the shortest routes between grid points, while avoiding a series of forbidden grid points. 
 
 `OperationSpec` shows a full run through where the _operations_ required by the rover are used to instruct the Rover to move to the Grid Destination.
 
