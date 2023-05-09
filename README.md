@@ -8,7 +8,7 @@ Defining a framework to represent a Rover on a _Square_ Grid, the allowed operat
 2. rotate clockWise
 3. rotate antiClockWise
 
-The Autopilot function `Autopilot.routeBetweenGridPoints` can be used to find the shortest path between grid points, and points can be forbidden along the way.
+The Autopilot function `Autopilot.routeBetweenGridPoints` can be used to find the shortest path between grid points, and grid squares can be forbidden along the way.
 It can cross the boundary and re-appear on the opposite side as a means to arrive quicker.
 It will return the route and detail the operations needed by the rover.
 Errors will be returned if the route cannot be completed or the input grid coordinates are out of bounds.
