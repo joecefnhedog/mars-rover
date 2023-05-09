@@ -5,54 +5,54 @@ import cats.implicits._
 object CoordinatesSystem {
 
   trait Bounds {
-    val upperBound = 6
-    val lowerBound = 1
-
+    val upperBound: Int
+    val lowerBound: Int
   }
 
-  trait Operations extends Bounds {
-
-    def isUpper(value: Int): Boolean = value == upperBound
-
-    def isLower(value: Int): Boolean = value == lowerBound
-
-  }
-
-  case class Xaxis(value: Int) extends Operations {
+  case class Xaxis(value: Int)(implicit bounds:Bounds)  {
 
     override def toString: String = s"X$value"
 
-    def withinBounds = (value >= lowerBound && value <= upperBound)
+    val isUpper: Boolean = value == bounds.upperBound
+
+    val isLower: Boolean = value == bounds.lowerBound
+
+    def withinBounds = (value >= bounds.lowerBound && value <= bounds.upperBound)
 
     def validate: Either[OutOfBoundsError, Xaxis] = if (withinBounds)
       this.asRight
-    else OutOfBoundsError(value, upperBound, lowerBound).asLeft
+    else OutOfBoundsError(value).asLeft
 
     def decrement: Xaxis =
-      this.copy(value = if (isLower(value)) upperBound else value - 1)
+      this.copy(value = if (isLower) bounds.upperBound else value - 1)
 
     def increment: Xaxis =
-      this.copy(value = if (isUpper(value)) lowerBound else value + 1)
+      this.copy(value = if (isUpper) bounds.lowerBound else value + 1)
   }
 
-  case class Yaxis(value: Int) extends Operations {
+  case class Yaxis(value: Int)(implicit bounds:Bounds) {
     override def toString: String = s"Y$value"
 
-    def withinBounds: Boolean = (value >= lowerBound && value <= upperBound)
+    val isUpper: Boolean = value == bounds.upperBound
+
+    val isLower: Boolean = value == bounds.lowerBound
+
+    def withinBounds: Boolean = (value >= bounds.lowerBound && value <= bounds.upperBound)
+
     def validate: Either[OutOfBoundsError, Yaxis] = if (withinBounds)
       this.asRight
-    else OutOfBoundsError(value, upperBound, lowerBound).asLeft
+    else OutOfBoundsError(value).asLeft
 
     def decrement: Yaxis =
-      this.copy(value = if (isLower(value)) upperBound else value - 1)
+      this.copy(value = if (isLower) bounds.upperBound else value - 1)
 
     def increment: Yaxis =
-      this.copy(value = if (isUpper(value)) lowerBound else value + 1)
+      this.copy(value = if (isUpper) bounds.lowerBound else value + 1)
   }
 
-  case class OutOfBoundsError(value: Int, upperBound: Int, lowerBound: Int)
+  case class OutOfBoundsError(value: Int)(implicit bounds: Bounds)
       extends RuntimeException(
-        s"Index: $value is out of bounds. The given bounds are; upperBound: $upperBound and lowerBound: $lowerBound"
+        s"Index: $value is out of bounds. The given bounds are; upperBound: ${bounds.upperBound} and lowerBound: ${bounds.lowerBound}"
       )
 
 }

@@ -2,7 +2,10 @@ package com.thrillpool.navigation.representation
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import com.thrillpool.navigation.representation.CoordinatesSystem.Xaxis
+import com.thrillpool.navigation.representation.CoordinatesSystem.{
+  Bounds,
+  Xaxis
+}
 
 class CoordinateSystemSpec extends AnyFlatSpec with Matchers {
 
@@ -18,9 +21,12 @@ class CoordinateSystemSpec extends AnyFlatSpec with Matchers {
 
   }
 
-
-
   trait CoordinateTestScope {
+
+    implicit val bounding: Bounds = new Bounds {
+      override val upperBound: Int = 6
+      override val lowerBound: Int = 1
+    }
     val xAxis = Xaxis(3)
   }
 

@@ -1,17 +1,21 @@
 package com.thrillpool.navigation
 
 import com.thrillpool.MarsRover
-import com.thrillpool.navigation.representation.CoordinatesSystem.{Xaxis, Yaxis}
+import com.thrillpool.navigation.representation.CoordinatesSystem.{
+  Bounds,
+  Xaxis,
+  Yaxis
+}
 import com.thrillpool.navigation.representation.{GridCoordinate, North}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class OperationSpec extends AnyFlatSpec with Matchers {
 
-  it should "use the operations retrieved from the grid search to navigate to the end" in {
+  it should "use the operations retrieved from the grid search to navigate to the end" in new OperationScope {
 
-    val start = MarsRover(2, 5, North)
-    val end = MarsRover(4, 3, North)
+    val start = MarsRover(GridCoordinate(Xaxis(2), Yaxis(5)), North)
+    val end = MarsRover(GridCoordinate(Xaxis(4), Yaxis(3)), North)
 
     val forbidden = List(
       GridCoordinate(Xaxis(3), Yaxis(2)),
@@ -38,4 +42,12 @@ class OperationSpec extends AnyFlatSpec with Matchers {
 
   }
 
+  trait OperationScope {
+    implicit val bounding: Bounds = {
+      new Bounds {
+        override val upperBound: Int = 6
+        override val lowerBound: Int = 1
+      }
+    }
+  }
 }

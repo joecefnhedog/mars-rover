@@ -77,13 +77,16 @@ case class MarsRover(gridPosition: GridCoordinate, orientation: Orientation) {
 
 }
 
-object MarsRover extends Bounds with App {
+object MarsRover extends App {
 
-  def apply(x: Int, y: Int, orientation: Orientation): MarsRover =
-    MarsRover(GridCoordinate(Xaxis(x), Yaxis(y)), orientation)
+  implicit val bounding: Bounds = new Bounds {
+    override val upperBound: Int = 6
+    override val lowerBound: Int = 1
+  }
 
-  val start = MarsRover(2, 5, North)
-  val end = MarsRover(4, 3, North)
+
+  val start = MarsRover(GridCoordinate(Xaxis(2), Yaxis(5)), North)
+  val end = MarsRover(GridCoordinate(Xaxis(4), Yaxis(3)), North)
 
   val forbidden = List(
     GridCoordinate(Xaxis(3), Yaxis(2)),
